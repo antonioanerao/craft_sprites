@@ -64,7 +64,7 @@ def split_auto_rect(
         bottom = min(H, y2 + padding_bottom)
 
         frame = image.crop((left, top, right, bottom))
-        frame.save(os.path.join(output_dir, f"sprite_{i:02d}.png"))
+        frame.save(os.path.join(output_dir, f"sprite_{i:d}.png"))
 
     print(f"[OK] {len(sprites)} sprites salvas em '{output_dir}' "
           f"(padding: top={padding_top}, right={padding_right}, bottom={padding_bottom}, left={padding_left})")
