@@ -2,7 +2,7 @@ import os
 import sys
 from PIL import Image
 import numpy as np
-from rembg import remove  # <-- novo import
+from rembg import remove
 
 
 def remover_background(image_path):
