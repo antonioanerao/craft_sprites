@@ -1,6 +1,6 @@
 # Craft Sprites
 
-Ferramenta em **Pythonw** para dividir automaticamente **spritesheets** em imagens individuais.  
+Ferramenta em **Python** para dividir automaticamente **spritesheets** em imagens individuais.  
 Este script detecta automaticamente quantas sprites existem.
 
 ## Como usar
