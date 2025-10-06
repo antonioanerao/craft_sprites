@@ -2,6 +2,32 @@ import os
 import sys
 from PIL import Image
 import numpy as np
+from rembg import remove  # <-- novo import
+
+
+def remover_background(image_path):
+    """
+    Remove o fundo da imagem usando rembg com alpha matting refinado.
+    Retorna o caminho da nova imagem gerada.
+    """
+    print(f"[INFO] Removendo background de '{image_path}' ...")
+    input_image = Image.open(image_path)
+
+    output_image = remove(
+        input_image,
+        alpha_matting=True,
+        alpha_matting_foreground_threshold=240,
+        alpha_matting_background_threshold=10,
+        alpha_matting_erode_structure_size=10,
+        alpha_matting_base_size=1000
+    )
+
+    image_name = os.path.splitext(os.path.basename(image_path))[0]
+    output_path = f"{image_name}_sem_fundo.png"
+    output_image.save(output_path)
+
+    print(f"[OK] Fundo removido e salvo como '{output_path}'")
+    return output_path
 
 
 def split_auto_rect(
@@ -19,7 +45,6 @@ def split_auto_rect(
     arr = np.array(image)
     H, W = arr.shape[:2]
     alpha = arr[:, :, 3]
-
     mask = (alpha > alpha_threshold).astype(np.uint8)
 
     visited = np.zeros_like(mask, dtype=bool)
@@ -55,7 +80,22 @@ def split_auto_rect(
                 if area >= min_area:
                     sprites.append(bbox)
 
-    sprites.sort(key=lambda b: (b[1], b[0]))
+    centers = [((b[0] + b[2]) // 2, (b[1] + b[3]) // 2) for b in sprites]
+
+    if len(centers) > 1:
+        xs = [c[0] for c in centers]
+        ys = [c[1] for c in centers]
+        range_x = max(xs) - min(xs)
+        range_y = max(ys) - min(ys)
+
+        if range_y < range_x / 2:
+            sprites.sort(key=lambda b: b[0])
+        elif range_x < range_y / 2:
+            sprites.sort(key=lambda b: b[1])
+        else:
+            sprites.sort(key=lambda b: (b[1], b[0]))
+    else:
+        sprites.sort(key=lambda b: (b[1], b[0]))
 
     for i, (x1, y1, x2, y2) in enumerate(sprites):
         left = max(0, x1 - padding_left)
@@ -73,12 +113,20 @@ def split_auto_rect(
 def main():
     if len(sys.argv) < 2:
         print("Uso:")
-        print("  python new_rect.py imagem.png [padding]")
-        print("  python new_rect.py imagem.png [top right bottom left]")
+        print("  python app.py imagem.png [padding]")
+        print("  python app.py imagem.png [top right bottom left]")
+        print("  python app.py imagem.png --remover-background [padding]")
         sys.exit(1)
 
     image_path = sys.argv[1]
-    paddings = list(map(int, sys.argv[2:])) if len(sys.argv) > 2 else [0]
+    args = sys.argv[2:]
+
+    remover_bg = "--remover-background" in args
+    if remover_bg:
+        args.remove("--remover-background")
+        image_path = remover_background(image_path)
+
+    paddings = list(map(int, args)) if args else [0]
 
     if len(paddings) == 1:
         pad_top = pad_right = pad_bottom = pad_left = paddings[0]

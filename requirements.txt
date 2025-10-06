@@ -1,1 +1,10 @@
 pillow
+numpy
+rembg
+onnxruntime
+click
+filetype
+watchdog
+aiohttp
+gradio
+asyncer
